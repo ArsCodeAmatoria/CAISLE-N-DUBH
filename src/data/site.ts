@@ -29,7 +29,11 @@ export const siteData: SiteData = {
       "Each guest meets a double born from reflection and confrontation with what they will not admit. The doubles are not chaotic predators; they persuade, replace, and strip away false authority until only agency remains. The pond and the great door are engines of inevitability—not exposition.",
     readerAbout:
       "This site holds the screenplay in a structured reader: numbered lines, Save the Cat beats, page-turn notes, and anchor links into every scene so you can jump from architecture to language and back. The Characters section carries series bible detail; the structural map below links each act into the script. It is built for development, table-read prep, or reading the piece cold with the spine visible.",
-    titlePronunciation: "KASH-lawn duv — Irish for “black castle” (caisleán dubh).",
+    titlePronunciation: {
+      phonetic: "KASH-lawn duv",
+      gloss: "Irish for “black castle.”",
+      irishSpelling: "caisleán dubh",
+    },
     pronunciationGuide: [
       {
         phrase: "CAISLEÁN DUBH",

@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { siteData } from "@/data/site";
 import { StructuralMap } from "@/components/maps/structural-map";
-import { PronunciationHint } from "@/components/ui/pronunciation";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 
@@ -65,9 +64,28 @@ export function AboutPageContent() {
           <h1 className="mt-10 font-[family-name:var(--font-display)] text-[clamp(2.5rem,6vw,4.5rem)] font-semibold leading-[0.95] tracking-[0.06em] text-foreground">
             {a.title}
           </h1>
-          <PronunciationHint className="mt-4 max-w-2xl" label="Approx. pronunciation ·">
-            {a.titlePronunciation}
-          </PronunciationHint>
+          <div
+            className={cn(
+              "mt-6 max-w-xl rounded-sm border border-border/80 border-l-[3px] border-l-[color-mix(in_srgb,var(--ie-orange)_78%,transparent)]",
+              "bg-secondary/30 px-4 py-4 lg:max-w-2xl lg:px-5 lg:py-5",
+            )}
+          >
+            <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              Approximate pronunciation
+            </p>
+            <p className="mt-3 font-[family-name:var(--font-display)] text-[clamp(1.35rem,3.5vw,1.85rem)] font-medium leading-tight tracking-[0.12em] text-foreground">
+              {a.titlePronunciation.phonetic}
+            </p>
+            <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground lg:text-[15px]">
+              <span className="text-foreground/88">{a.titlePronunciation.gloss}</span>
+              <span className="mx-2 text-border" aria-hidden>
+                ·
+              </span>
+              <span className="font-[family-name:var(--font-geist-mono)] text-[13px] tracking-[0.08em] text-foreground/75 lg:text-[14px]">
+                {a.titlePronunciation.irishSpelling}
+              </span>
+            </p>
+          </div>
           <p className="mt-8 max-w-xl text-[12px] uppercase tracking-[0.18em] text-muted-foreground lg:text-[13px] lg:tracking-[0.2em]">
             {a.heroTagline}
           </p>

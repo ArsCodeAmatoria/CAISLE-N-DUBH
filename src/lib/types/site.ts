@@ -1,5 +1,12 @@
 export type RouteKey = "about" | "script" | "characters" | string;
 
+/** Hero title — how to say it; split for typography on About. */
+export interface TitlePronunciationBlock {
+  phonetic: string;
+  gloss: string;
+  irishSpelling: string;
+}
+
 export interface AboutContent {
   title: string;
   subtitle: string;
@@ -17,8 +24,8 @@ export interface AboutContent {
   /** Hero image path under `public` (protagonist portrait on About) */
   heroImageSrc: string;
   heroImageAlt: string;
-  /** Shown under the title — approximate Irish/English rendering for readers. */
-  titlePronunciation: string;
+  /** Shown under the title — approximate rendering + gloss + Irish spelling. */
+  titlePronunciation: TitlePronunciationBlock;
   /** Names and phrases that appear across the project; keep in sync with character pages. */
   pronunciationGuide: { phrase: string; approx: string; note?: string }[];
 }
