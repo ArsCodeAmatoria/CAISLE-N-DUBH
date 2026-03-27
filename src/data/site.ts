@@ -4,7 +4,7 @@ import { characterTruthMatrixRows, charactersBible } from "@/data/characters-bib
 export const siteImages = {
   ensembleMood: "/characters/woman.png",
   ensembleMoodSecondary: "/characters/woman2.png",
-  aboutHeroCastle: "/images/blackcastle3.png",
+  aboutHeroCastle: "/images/blackcastle4.png",
 } as const;
 
 export const siteData: SiteData = {
