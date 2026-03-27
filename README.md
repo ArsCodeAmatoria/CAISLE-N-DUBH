@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Caisleán Dubh — script reader
 
-## Getting Started
+Interactive screenplay reader and story bible for **Caisleán Dubh**, built with [Next.js](https://nextjs.org) (App Router). The site presents the full script with scene navigation, structural beats (Save the Cat / McKee notes where embedded), character profiles, pronunciation guidance, and supporting copy on **About** and **Credits**.
 
-First, run the development server:
+**Repository:** [github.com/ArsCodeAmatoria/CAISLE-N-DUBH](https://github.com/ArsCodeAmatoria/CAISLE-N-DUBH)
+
+## Stack
+
+- **Next.js** 16 · **React** 19 · **TypeScript**
+- **Tailwind CSS** 4
+- UI: Base UI / shadcn-style primitives, Lucide icons
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Main routes:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Route | Content |
+|--------|---------|
+| `/` | Landing |
+| `/script` | Full script with sticky meta and scroll-spy scenes |
+| `/characters` | Character index |
+| `/characters/[slug]` | Per-character bible (voice, arc, key scenes) |
+| `/about` | Project / story context |
+| `/credits` | Credits |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Production build:
 
-## Learn More
+```bash
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Where the content lives
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **`src/data/site.ts`** — Scene list, slug / anchor / page hints, dialogue and action lines, structural and theme notes.
+- **`src/data/characters-bible.ts`** — Character records (voice/accent, dialogue tone, arcs) surfaced on character pages.
+- **`src/lib/types/site.ts`** — Types for script and site data.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Dialogue and copy aim for **authentic Hiberno-English** (not default RP or General American), aligned with each character’s bible entry.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run start` | Serve production build |
+| `npm run lint` | ESLint |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License / usage
+
+Content and code rights sit with the project owners unless otherwise stated elsewhere in the repository.

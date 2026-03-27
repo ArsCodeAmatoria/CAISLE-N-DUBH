@@ -17,6 +17,10 @@ export interface AboutContent {
   /** Hero image path under `public` (protagonist portrait on About) */
   heroImageSrc: string;
   heroImageAlt: string;
+  /** Shown under the title — approximate Irish/English rendering for readers. */
+  titlePronunciation: string;
+  /** Names and phrases that appear across the project; keep in sync with character pages. */
+  pronunciationGuide: { phrase: string; approx: string; note?: string }[];
 }
 
 export interface ActDef {
@@ -110,9 +114,20 @@ export interface CharacterSummary {
   id: string;
   slug: string;
   name: string;
+  /** Irish / Irish-context names — approx. pronunciation for readers. */
+  namePronunciation?: string;
   role: string;
   /** Bible handle, e.g. "The Avoider" */
   bibleTagline: string;
+  /**
+   * Irish accent / Hiberno-English shading for casting and table reads (baseline: ROI, not generic “British”).
+   */
+  voiceAccent: string;
+  /**
+   * External / scene appetite — what they pursue on screen (Save the Cat *want*;
+   * McKee *object of desire* in the moment).
+   */
+  consciousWant: string;
   coreFlaw: string;
   arcDirection: string;
   toneDescriptor: string;
@@ -122,6 +137,11 @@ export interface CharacterSummary {
 }
 
 export interface CharacterDetail extends CharacterSummary {
+  /**
+   * Internal completion — thematic truth under behavior (Save the Cat *need*;
+   * McKee *unity of character* / value shift). Omit or leave empty only for non-arcing functions.
+   */
+  unconsciousNeed?: string;
   overview: string;
   narrativeFunction: string;
   survivalStrategy: string;

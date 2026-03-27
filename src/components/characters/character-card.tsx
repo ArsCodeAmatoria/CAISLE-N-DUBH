@@ -40,6 +40,15 @@ export function CharacterCard({ c }: { c: CharacterSummary }) {
         <h2 className="mt-3 font-[family-name:var(--font-display)] text-2xl font-medium tracking-[0.06em] text-foreground transition-opacity group-hover:opacity-90">
           {c.name}
         </h2>
+        {c.namePronunciation ? (
+          <p className="mt-2 font-[family-name:var(--font-geist-mono)] text-[10px] leading-snug tracking-[0.04em] text-muted-foreground">
+            <span className="text-muted-foreground/80">Approx.</span> {c.namePronunciation}
+          </p>
+        ) : null}
+        <p className="mt-2 line-clamp-2 text-[10px] leading-snug text-foreground/75">
+          <span className="font-[family-name:var(--font-geist-mono)] text-muted-foreground">Voice · </span>
+          {c.voiceAccent}
+        </p>
         <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground">{c.toneDescriptor}</p>
         <dl className="mt-5 space-y-3 border-t border-border/80 pt-5 text-[12px] leading-snug">
           <div>
@@ -53,6 +62,14 @@ export function CharacterCard({ c }: { c: CharacterSummary }) {
               Arc
             </dt>
             <dd className="mt-1 text-foreground/88">{c.arcDirection}</dd>
+          </div>
+          <div className="pt-1">
+            <dt className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-wider text-muted-foreground">
+              Want
+            </dt>
+            <dd className="mt-1 line-clamp-3 text-[11px] leading-snug text-foreground/80">
+              {c.consciousWant}
+            </dd>
           </div>
         </dl>
       </div>

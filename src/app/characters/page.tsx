@@ -34,6 +34,7 @@ export default function CharactersPage() {
               <p className="mt-6 max-w-xl text-[15px] leading-[1.65] text-foreground/88">
                 Every guest pressure-tests a strategy Aoife might take—denial, control,
                 suppression, forcing truth, watching, or surrender. Only choosing transforms.
+                The ensemble is Irish: every character is written for an Irish accent (Hiberno-English).
               </p>
               <p className="mt-8 font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 Center:{" "}

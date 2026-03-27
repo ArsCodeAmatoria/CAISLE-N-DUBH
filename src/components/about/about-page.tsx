@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { siteData } from "@/data/site";
 import { StructuralMap } from "@/components/maps/structural-map";
+import { PronunciationHint } from "@/components/ui/pronunciation";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 
@@ -64,6 +65,9 @@ export function AboutPageContent() {
           <h1 className="mt-10 font-[family-name:var(--font-display)] text-[clamp(2.5rem,6vw,4.5rem)] font-semibold leading-[0.95] tracking-[0.06em] text-foreground">
             {a.title}
           </h1>
+          <PronunciationHint className="mt-4 max-w-2xl" label="Approx. pronunciation ·">
+            {a.titlePronunciation}
+          </PronunciationHint>
           <p className="mt-8 max-w-xl text-[12px] uppercase tracking-[0.18em] text-muted-foreground lg:text-[13px] lg:tracking-[0.2em]">
             {a.heroTagline}
           </p>
@@ -93,6 +97,30 @@ export function AboutPageContent() {
             {a.logline}
           </p>
         </ThemeBlock>
+
+        <section className="mt-12 rounded-md border border-border/80 border-l-[3px] border-l-[color-mix(in_srgb,var(--ie-green)_70%,transparent)] bg-secondary/25 px-5 py-5 lg:px-6 lg:py-6">
+          <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Irish names · approximate pronunciation
+          </p>
+          <p className="mt-2 text-[12px] leading-snug text-muted-foreground">
+            Stressed syllables in CAPS. For table reads and readers new to Irish spellings—close approximations, not IPA.
+          </p>
+          <dl className="mt-5 space-y-3.5">
+            {a.pronunciationGuide.map((row) => (
+              <div key={row.phrase} className="border-b border-border/50 pb-3.5 last:border-b-0 last:pb-0">
+                <dt className="font-[family-name:var(--font-display)] text-[15px] tracking-[0.06em] text-foreground/95">
+                  {row.phrase}
+                </dt>
+                <dd className="mt-1 font-[family-name:var(--font-geist-mono)] text-[12px] text-foreground/85">
+                  {row.approx}
+                  {row.note ? (
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">{row.note}</span>
+                  ) : null}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
 
         <section className="mt-16 border border-border/90 bg-secondary/15 px-5 py-6 lg:px-6 lg:py-7">
           <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
