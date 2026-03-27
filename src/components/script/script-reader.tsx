@@ -2,25 +2,32 @@
 
 import * as React from "react";
 import { siteData } from "@/data/site";
-import { flattenScriptFlow } from "@/lib/script/flatten";
+import { flatScriptNodes } from "@/lib/script/flat-script-nodes";
 import type { ScriptScrollState } from "@/components/script/script-scroll-context";
-import type { BeatDef, ScriptLine, ScriptScene, StructuralMarker } from "@/lib/types/site";
+import type {
+  BeatDef,
+  SceneStoryWeight,
+  ScriptLine,
+  ScriptScene,
+  StructuralMarker,
+} from "@/lib/types/site";
 import { cn } from "@/lib/utils";
 import { Link2, ListTree, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { IRISH_TRICOLOUR } from "@/lib/irish-tricolour";
 
-const beatMap = new Map(siteData.beats.map((b) => [b.id, b]));
-const markerMap = new Map(siteData.structuralMarkers.map((m) => [m.id, m]));
-const noteMap = new Map(siteData.pageAccomplishments.map((n) => [n.id, n]));
-const sceneMap = new Map(siteData.scenes.map((s) => [s.id, s]));
 const actMap = new Map(siteData.acts.map((a) => [a.id, a]));
 
-export const flatNodes = flattenScriptFlow(siteData.scriptFlow, {
-  beats: beatMap,
-  markers: markerMap,
-  notes: noteMap,
-  scenes: sceneMap,
-});
+const writerName = siteData.about.writtenBy.replace(/^Written by\s+/i, "").trim();
+const scriptHeroWriterCredit = `Scríbhinn ag ${writerName} · Screenplay by ${writerName}`;
+
+/** Tricolour + glow — matches credits hero treatment */
+const IE = {
+  ...IRISH_TRICOLOUR,
+  greenGlow: "rgba(22, 155, 98, 0.35)",
+} as const;
+
+export const flatNodes = flatScriptNodes;
 
 const initialMeta: ScriptScrollState = {
   pageApprox: 1,
@@ -28,6 +35,19 @@ const initialMeta: ScriptScrollState = {
   actLabel: "Act I",
   sceneSlug: null,
   activeAnchor: null,
+  sceneWeight: null,
+};
+
+const sceneWeightLabel: Record<SceneStoryWeight, string> = {
+  greater: "Greater on the board",
+  lesser: "Lesser on the board",
+};
+
+const sceneWeightHint: Record<SceneStoryWeight, string> = {
+  greater:
+    "Save the Cat: spine turn, setpiece, or beat obligation — the scene must land for the story to read.",
+  lesser:
+    "Save the Cat: connective tissue, B-story, or texture — supports the beat without carrying the whole turn alone.",
 };
 
 function MarkerBlock({ marker }: { marker: StructuralMarker }) {
@@ -216,14 +236,31 @@ function SceneBlock({
       data-act={act?.shortLabel ?? ""}
       data-beat-label={beatLabel ?? ""}
       data-scene-slug={scene.slug}
+      data-scene-weight={scene.sceneWeight}
       className="scroll-mt-28 pb-16 pt-8"
     >
       <div className="mx-auto max-w-2xl px-6">
         <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border/60 pb-4">
-          <div>
-            <p className="font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground">
-              Scene · p. {scene.page}
-              {act ? ` · ${act.shortLabel}` : ""}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground">
+                Scene · p. {scene.page}
+                {act ? ` · ${act.shortLabel}` : ""}
+              </p>
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center rounded-sm border px-1.5 py-0.5 font-[family-name:var(--font-geist-mono)] text-[9px] font-medium uppercase tracking-[0.14em]",
+                  scene.sceneWeight === "greater"
+                    ? "border-[color-mix(in_srgb,var(--script-scene-accent)_55%,transparent)] bg-[color-mix(in_srgb,var(--script-scene-accent)_12%,transparent)] text-[color:var(--script-scene-accent)]"
+                    : "border-border/70 bg-secondary/40 text-muted-foreground",
+                )}
+                title={sceneWeightHint[scene.sceneWeight]}
+              >
+                {scene.sceneWeight === "greater" ? "Greater" : "Lesser"}
+              </span>
+            </div>
+            <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-[9px] tracking-wide text-muted-foreground/85">
+              {sceneWeightLabel[scene.sceneWeight]}
             </p>
             <h3 className="mt-1 font-[family-name:var(--font-geist-mono)] text-[12px] font-medium uppercase tracking-[0.08em] text-foreground">
               {scene.heading}
@@ -246,7 +283,10 @@ function SceneBlock({
         )}
         {structureOnly ? (
           <p className="text-[12px] text-muted-foreground">
-            {scene.lines.length} lines · {scene.characterIds.length} presences
+            {scene.lines.length} lines · {scene.characterIds.length} presences ·{" "}
+            <span className="text-foreground/80">
+              {scene.sceneWeight === "greater" ? "Greater" : "Lesser"} on the board
+            </span>
           </p>
         ) : (
           <div className="font-[family-name:var(--font-serif-body)]">
@@ -351,6 +391,23 @@ function StickyMetaBar({ meta }: { meta: ScriptScrollState }) {
             </span>
           </>
         )}
+        {meta.sceneWeight && (
+          <>
+            <span aria-hidden className="text-border">
+              |
+            </span>
+            <span
+              className={cn(
+                "normal-case tracking-normal",
+                meta.sceneWeight === "greater"
+                  ? "text-[11px] text-[color:var(--script-scene-accent)]"
+                  : "text-[11px] text-muted-foreground",
+              )}
+            >
+              {meta.sceneWeight === "greater" ? "Greater scene" : "Lesser scene"}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -412,12 +469,19 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
         if (!actAttr && kind === "accomplishment") actLabel = prev.actLabel;
       }
 
+      let sceneWeight: SceneStoryWeight | null = null;
+      if (kind === "scene") {
+        const w = el.getAttribute("data-scene-weight");
+        if (w === "greater" || w === "lesser") sceneWeight = w;
+      }
+
       const merged: ScriptScrollState = {
         pageApprox,
         beatLabel,
         actLabel,
         sceneSlug: kind === "scene" ? sceneSlug : null,
         activeAnchor: anchor,
+        sceneWeight,
       };
 
       metaRef.current = merged;
@@ -544,25 +608,63 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
         </Button>
       </div>
       <article className="pb-32 pt-4">
-        <header className="mx-auto max-w-2xl px-6 pb-16 pt-8">
-          <div>
-            <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-              Feature screenplay · reader
-            </p>
-            <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-[0.08em] text-foreground sm:text-5xl">
-              CAISLEÁN DUBH
-            </h1>
-            <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
-              Archival presentation with structural markers. Line numbers are continuous for
-              navigation reference. Sluglines inside scenes (
-              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/70">
+        <header className="mx-auto max-w-2xl px-6 pb-16 pt-6">
+          <div className="relative overflow-hidden text-white" style={{ background: "#000000" }}>
+            <div
+              className="pointer-events-none absolute inset-0 z-0"
+              style={{
+                background: `radial-gradient(ellipse 75% 60% at 30% 35%, ${IE.green}18, transparent 55%), radial-gradient(ellipse 60% 50% at 75% 70%, ${IE.orange}12, transparent 50%), #000000`,
+              }}
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.72)_100%)]"
+              aria-hidden
+            />
+            <div
+              className="absolute inset-x-8 top-0 z-[1] h-px rounded-full opacity-90 sm:inset-x-12"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${IE.green}99, ${IE.white}, ${IE.orange}99, transparent)`,
+              }}
+              aria-hidden
+            />
+            <div className="relative z-[2] flex flex-col items-center px-6 py-12 text-center sm:px-10 sm:py-14">
+              <p
+                className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.42em]"
+                style={{ color: `${IE.green}bb` }}
+              >
+                Scéal scáileán · Screen story
+              </p>
+              <h1 className="mt-6 font-[family-name:var(--font-display)] text-[clamp(1.75rem,6vw,3.25rem)] font-medium tracking-[0.2em] text-white">
+                CAISLEÁN DUBH
+              </h1>
+              <p className="mt-4 font-[family-name:var(--font-display)] text-[15px] font-normal tracking-[0.14em] text-white/65 md:text-base">
+                Caisleán Dubh · The Black Castle
+              </p>
+              <div
+                className="mx-auto mt-8 h-0.5 w-28 max-w-[70%] rounded-full"
+                style={{
+                  background: `linear-gradient(90deg, ${IE.green}, ${IE.white} 50%, ${IE.orange})`,
+                  boxShadow: `0 0 20px ${IE.greenGlow}`,
+                }}
+              />
+              <p className="mt-8 font-[family-name:var(--font-geist-mono)] text-[12px] tracking-wide text-white/50">
+                {scriptHeroWriterCredit}
+              </p>
+            </div>
+          </div>
+          <div className="mt-8 border-l border-border/80 pl-4">
+            <p className="max-w-xl text-[12px] leading-relaxed text-muted-foreground">
+              <span className="font-medium text-foreground/90">How to read.</span> Sluglines
+              inside scenes (
+              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/75">
                 INT.
               </span>
               /
-              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/70">
+              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/75">
                 EXT.
               </span>
-              ) are styled like sluglines; everything else follows the line-type color key below.
+              ) match standard screenplay format; colors below follow element type.
             </p>
             <div
               className="mt-4 flex max-w-xl flex-wrap gap-2"
@@ -572,9 +674,6 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
                 <ScriptLegendChip key={item.variant} variant={item.variant} />
               ))}
             </div>
-            <p className="mt-4 font-[family-name:var(--font-geist-mono)] text-[10px] tracking-[0.1em] text-foreground/80">
-              {siteData.about.writtenBy}
-            </p>
           </div>
         </header>
         {elements}

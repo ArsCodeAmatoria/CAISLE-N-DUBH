@@ -12,6 +12,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { siteData } from "@/data/site";
+import { scriptScenesOrdered } from "@/lib/script/flat-script-nodes";
+import type { SceneStoryWeight } from "@/lib/types/site";
 import { cn } from "@/lib/utils";
 import { useScriptScrollOptional } from "@/components/script/script-scroll-context";
 import {
@@ -72,10 +74,13 @@ function AnchorLink({
   href,
   label,
   indent,
+  sceneWeight,
 }: {
   href: string;
   label: string;
   indent?: boolean;
+  /** Save the Cat–style scene load; adjusts emphasis in scene TOC only. */
+  sceneWeight?: SceneStoryWeight;
 }) {
   const pathname = usePathname();
   const hash = useHash();
@@ -88,14 +93,36 @@ function AnchorLink({
   return (
     <a
       href={href}
+      title={
+        sceneWeight
+          ? `${label} · ${sceneWeight === "greater" ? "Greater" : "Lesser"} on the board (Save the Cat)`
+          : undefined
+      }
       className={cn(
         "block truncate rounded-sm px-2 py-1 text-[12px] transition-colors duration-200",
         indent && "pl-4",
+        sceneWeight === "lesser" && "opacity-[0.88]",
         active
           ? "bg-secondary text-foreground"
           : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
       )}
     >
+      {sceneWeight === "greater" && (
+        <span
+          className="mr-1.5 font-[family-name:var(--font-geist-mono)] text-[9px] text-[color:var(--script-scene-accent)]"
+          aria-hidden
+        >
+          ●
+        </span>
+      )}
+      {sceneWeight === "lesser" && (
+        <span
+          className="mr-1.5 font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground/60"
+          aria-hidden
+        >
+          ○
+        </span>
+      )}
       {label}
     </a>
   );
@@ -179,12 +206,13 @@ export function LeftNav() {
               Scenes
             </p>
             <div className="max-h-[22vh] space-y-0.5 overflow-y-auto pr-1 lg:max-h-[36vh]">
-              {siteData.scenes.map((s) => (
+              {scriptScenesOrdered.map((s) => (
                 <AnchorLink
                   key={s.id}
                   href={`/script#${s.anchor}`}
-                  label={s.heading}
+                  label={s.navLabel}
                   indent
+                  sceneWeight={s.sceneWeight}
                 />
               ))}
             </div>
@@ -228,6 +256,18 @@ export function LeftNav() {
           )}
           {scroll.beatLabel && (
             <p className="text-[11px] leading-snug">{scroll.beatLabel}</p>
+          )}
+          {scroll.sceneWeight && (
+            <p
+              className={cn(
+                "mt-1 text-[10px] uppercase tracking-wider",
+                scroll.sceneWeight === "greater"
+                  ? "text-[color:var(--script-scene-accent)]"
+                  : "text-muted-foreground",
+              )}
+            >
+              {scroll.sceneWeight === "greater" ? "Greater scene" : "Lesser scene"}
+            </p>
           )}
         </div>
       )}

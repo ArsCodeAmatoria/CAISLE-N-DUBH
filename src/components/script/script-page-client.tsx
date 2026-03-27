@@ -16,6 +16,7 @@ const emptyScroll: ScriptScrollState = {
   actLabel: "Act I",
   sceneSlug: null,
   activeAnchor: null,
+  sceneWeight: null,
 };
 
 export function ScriptPageClient() {

@@ -53,6 +53,13 @@ export type ScriptLineKind =
   | "parenthetical"
   | "transition";
 
+/**
+ * Save the Cat–style scene load on the board (not page count).
+ * **Greater** — spine turn, setpiece, or beat obligation the audience must feel.
+ * **Lesser** — connective tissue, texture, B-story, or subdivided pressure that supports without carrying the whole beat alone.
+ */
+export type SceneStoryWeight = "greater" | "lesser";
+
 export interface ScriptLine {
   kind: ScriptLineKind;
   text: string;
@@ -62,10 +69,14 @@ export interface ScriptScene {
   id: string;
   slug: string;
   anchor: string;
+  /** Short story label for script TOC / sidebar (full `heading` stays the slugline). */
+  navLabel: string;
   heading: string;
   sequenceId: string;
   beatId: string;
   actId: string;
+  /** Save the Cat–style greater vs lesser scene weight on the storyboard. */
+  sceneWeight: SceneStoryWeight;
   page: number;
   structNote?: string;
   themeNote?: string;
