@@ -1,13 +1,10 @@
 import type { SiteData } from "@/lib/types/site";
-import {
-  characterTruthMatrixRows,
-  charactersBible,
-  protagonistPortrait,
-} from "@/data/characters-bible";
+import { characterTruthMatrixRows, charactersBible } from "@/data/characters-bible";
 
 export const siteImages = {
   ensembleMood: "/characters/woman.png",
   ensembleMoodSecondary: "/characters/woman2.png",
+  aboutHeroCastle: "/images/blackcastle.png",
 } as const;
 
 export const siteData: SiteData = {
@@ -17,8 +14,9 @@ export const siteData: SiteData = {
     heroTagline:
       "Psychological thriller · stillness as threat · choice under pressure",
     writtenBy: "Written by Leigh Akin",
-    heroImageSrc: protagonistPortrait.src,
-    heroImageAlt: protagonistPortrait.alt,
+    heroImageSrc: siteImages.aboutHeroCastle,
+    heroImageAlt:
+      "Black castle — medieval silhouette and night sky, Caisleán Dubh header art.",
     logline:
       "Invited strangers, thrown together at a remote castle, find their names already in the ledger—then perfect doubles crawl from a black pond and something hammers a monster door. Only the quietest among them can open it, or watch her double take her life.",
     pitch:
