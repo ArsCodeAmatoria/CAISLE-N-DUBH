@@ -6,6 +6,7 @@ import * as React from "react";
 import {
   BookOpen,
   Clapperboard,
+  Disc3,
   FileText,
   Users,
   ChevronRight,
@@ -23,6 +24,7 @@ const navPrimary = [
   { href: "/about", label: "About", icon: BookOpen },
   { href: "/script", label: "Script", icon: FileText },
   { href: "/characters", label: "Characters", icon: Users },
+  { href: "/credits", label: "Credits", icon: Disc3 },
 ] as const;
 
 function useHash() {
@@ -121,6 +123,9 @@ export function LeftNav() {
         </Link>
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
           Screenplay atlas
+        </p>
+        <p className="mt-2 font-[family-name:var(--font-geist-mono)] text-[10px] tracking-[0.08em] text-muted-foreground">
+          {siteData.about.writtenBy}
         </p>
       </div>
 

@@ -109,18 +109,88 @@ function AccomplishmentBlock({
   );
 }
 
-function lineClass(kind: ScriptLine["kind"]) {
-  switch (kind) {
+type ScriptLineVariant =
+  | "scene-heading"
+  | "action"
+  | "character"
+  | "dialogue"
+  | "parenthetical"
+  | "transition";
+
+function resolveScriptLineVariant(ln: ScriptLine): ScriptLineVariant {
+  if (ln.kind === "transition") return "transition";
+  if (ln.kind === "character") return "character";
+  if (ln.kind === "dialogue") return "dialogue";
+  if (ln.kind === "parenthetical") return "parenthetical";
+  const t = ln.text.trim();
+  if (/^(INT\.|EXT\.|INT\/?\s*\/\s*EXT\.|I\/E\.|EST\.)/i.test(t)) {
+    return "scene-heading";
+  }
+  if (/^CUT TO:?$/i.test(t)) return "transition";
+  return "action";
+}
+
+const SCRIPT_LEGEND: { variant: ScriptLineVariant; label: string }[] = [
+  { variant: "scene-heading", label: "Slugline" },
+  { variant: "action", label: "Action" },
+  { variant: "character", label: "Name" },
+  { variant: "dialogue", label: "Speech" },
+  { variant: "parenthetical", label: "Wrylie" },
+  { variant: "transition", label: "Transition" },
+];
+
+function ScriptLegendChip({ variant }: { variant: ScriptLineVariant }) {
+  const bar = {
+    "scene-heading": "bg-[var(--script-scene-accent)]",
+    action: "bg-[var(--script-action-rule)]",
+    character: "bg-[var(--script-character-accent)]",
+    dialogue: "bg-[var(--script-dialogue-rule)]",
+    parenthetical: "bg-[var(--script-parenthetical)]",
+    transition: "bg-[var(--script-transition)]",
+  }[variant];
+  const label = SCRIPT_LEGEND.find((x) => x.variant === variant)?.label ?? variant;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-sm border border-border/60 bg-secondary/20 px-2 py-0.5">
+      <span className={cn("size-1.5 shrink-0 rounded-[1px]", bar)} aria-hidden />
+      <span className="font-[family-name:var(--font-geist-mono)] text-[9px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+    </span>
+  );
+}
+
+function scriptLinePresentation(v: ScriptLineVariant): { wrap: string; text: string } {
+  switch (v) {
+    case "scene-heading":
+      return {
+        wrap: "border-l-2 border-[var(--script-scene-accent)] bg-[color-mix(in_srgb,var(--script-scene-accent)_10%,transparent)] pl-3",
+        text: "font-[family-name:var(--font-geist-mono)] text-[11px] font-semibold uppercase leading-snug tracking-[0.14em] text-[var(--script-scene-accent)]",
+      };
+    case "action":
+      return {
+        wrap: "border-l border-[var(--script-action-rule)] py-0.5 pl-3",
+        text: "text-[13px] leading-relaxed text-foreground/88",
+      };
     case "character":
-      return "font-medium tracking-wide uppercase text-[13px] pt-4";
+      return {
+        wrap: "border-l-2 border-[var(--script-character-accent)] bg-[color-mix(in_srgb,var(--script-character-accent)_12%,transparent)] pl-3 py-2",
+        text: "font-[family-name:var(--font-geist-mono)] text-[12px] font-semibold uppercase tracking-[0.16em] text-[var(--script-character-accent)]",
+      };
     case "dialogue":
-      return "pl-[3.25rem] text-[13px] leading-relaxed max-w-[28rem]";
+      return {
+        wrap: "border-l-2 border-[var(--script-dialogue-rule)] pl-4",
+        text: "max-w-[34rem] text-[14px] leading-[1.72] text-[color:var(--script-dialogue-accent)]",
+      };
     case "parenthetical":
-      return "pl-[3.75rem] text-[12px] italic text-muted-foreground";
+      return {
+        wrap: "border-l border-[var(--script-parenthetical)] pl-5",
+        text: "text-[12px] italic leading-relaxed text-[color:var(--script-parenthetical)]",
+      };
     case "transition":
-      return "font-medium uppercase text-right text-[12px] tracking-widest text-muted-foreground pt-6";
-    default:
-      return "text-[13px] leading-relaxed text-foreground/90 pt-2";
+      return {
+        wrap: "border-l-2 border-[var(--script-transition)] bg-[color-mix(in_srgb,var(--script-transition)_14%,transparent)] pl-3 pt-5",
+        text: "text-right font-[family-name:var(--font-geist-mono)] text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--script-transition)]",
+      };
   }
 }
 
@@ -166,23 +236,67 @@ function SceneBlock({
             {scene.structNote}
           </p>
         )}
+        {scene.themeNote && !structureOnly && (
+          <p className="mb-4 border-l border-border pl-3 text-[11px] leading-relaxed text-muted-foreground/90">
+            <span className="font-medium not-italic text-muted-foreground">
+              Value shift.
+            </span>{" "}
+            {scene.themeNote}
+          </p>
+        )}
         {structureOnly ? (
           <p className="text-[12px] text-muted-foreground">
             {scene.lines.length} lines · {scene.characterIds.length} presences
           </p>
         ) : (
-          <div className="space-y-0 font-[family-name:var(--font-serif-body)]">
+          <div className="font-[family-name:var(--font-serif-body)]">
             {scene.lines.map((ln, i) => {
               const n = lineNum++;
+              const variant = resolveScriptLineVariant(ln);
+              const { wrap, text } = scriptLinePresentation(variant);
+              const prevVariant =
+                i > 0 ? resolveScriptLineVariant(scene.lines[i - 1]!) : null;
+              const sectionBreakBefore =
+                i > 0 &&
+                (variant === "character" ||
+                  variant === "transition" ||
+                  variant === "scene-heading" ||
+                  (variant === "action" &&
+                    prevVariant === "dialogue"));
+              const numPad =
+                variant === "character"
+                  ? "pt-2.5"
+                  : variant === "dialogue"
+                    ? "pt-1.5"
+                    : variant === "parenthetical"
+                      ? "pt-1"
+                      : variant === "transition"
+                        ? "pt-5"
+                        : variant === "scene-heading"
+                          ? "pt-2"
+                          : "pt-1";
               return (
                 <div
                   key={i}
-                  className="grid grid-cols-[2rem_1fr] gap-x-2 gap-y-0 sm:grid-cols-[2.5rem_1fr]"
-            >
-                  <span className="select-none pt-2 text-right font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground/70">
+                  className={cn(
+                    "grid grid-cols-[2rem_1fr] items-start gap-x-2 sm:grid-cols-[2.5rem_1fr]",
+                    sectionBreakBefore && "mt-4 sm:mt-5",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "select-none text-right font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground/65",
+                      numPad,
+                    )}
+                  >
                     {n}
                   </span>
-                  <p className={lineClass(ln.kind)}>{ln.text}</p>
+                  <div
+                    className={cn("min-w-0 rounded-r-sm", wrap)}
+                    data-script-variant={variant}
+                  >
+                    <p className={cn(text)}>{ln.text}</p>
+                  </div>
                 </div>
               );
             })}
@@ -431,16 +545,37 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
       </div>
       <article className="pb-32 pt-4">
         <header className="mx-auto max-w-2xl px-6 pb-16 pt-8">
-          <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            Feature screenplay · reader
-          </p>
-          <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-[0.08em] text-foreground sm:text-5xl">
-            CAISLEÁN DUBH
-          </h1>
-          <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
-            Archival presentation with structural markers. Line numbers are continuous for
-            navigation reference.
-          </p>
+          <div>
+            <p className="font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              Feature screenplay · reader
+            </p>
+            <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-[0.08em] text-foreground sm:text-5xl">
+              CAISLEÁN DUBH
+            </h1>
+            <p className="mt-4 max-w-xl text-[13px] leading-relaxed text-muted-foreground">
+              Archival presentation with structural markers. Line numbers are continuous for
+              navigation reference. Sluglines inside scenes (
+              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/70">
+                INT.
+              </span>
+              /
+              <span className="font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/70">
+                EXT.
+              </span>
+              ) are styled like sluglines; everything else follows the line-type color key below.
+            </p>
+            <div
+              className="mt-4 flex max-w-xl flex-wrap gap-2"
+              aria-label="Script line type legend"
+            >
+              {SCRIPT_LEGEND.map((item) => (
+                <ScriptLegendChip key={item.variant} variant={item.variant} />
+              ))}
+            </div>
+            <p className="mt-4 font-[family-name:var(--font-geist-mono)] text-[10px] tracking-[0.1em] text-foreground/80">
+              {siteData.about.writtenBy}
+            </p>
+          </div>
         </header>
         {elements}
       </article>

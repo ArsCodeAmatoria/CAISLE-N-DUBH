@@ -25,7 +25,8 @@ export const metadata: Metadata = {
     template: "%s — CAISLEÁN DUBH",
   },
   description:
-    "A cinematic screenplay reader and structural atlas for CAISLEÁN DUBH.",
+    "A cinematic screenplay reader and structural atlas for CAISLEÁN DUBH. Written by Leigh Akin.",
+  authors: [{ name: "Leigh Akin" }],
 };
 
 export default function RootLayout({

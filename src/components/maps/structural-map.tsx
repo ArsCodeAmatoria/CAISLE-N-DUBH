@@ -8,7 +8,7 @@ export function StructuralMap() {
         Structural spine
       </p>
       <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
-        Cross-reference acts in the reader. Anchors mirror the script pagination map.
+        Each card links to the corresponding marker in the script reader so you can read or skim with the same spine in view.
       </p>
       <ol className="mt-10 flex flex-col gap-4 lg:flex-row lg:gap-0">
         {siteData.acts.map((act, i) => (

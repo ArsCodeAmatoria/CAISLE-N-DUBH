@@ -79,3 +79,17 @@
     color: oklch(0.98 0 0);
   }
 }
+
+/* Irish tricolour tokens (match credits) + script reader line accents */
+.dark {
+  --ie-green: #169b62;
+  --ie-white: #ffffff;
+  --ie-orange: #ff883e;
+  --script-scene-accent: var(--ie-green);
+  --script-character-accent: var(--ie-orange);
+  --script-dialogue-accent: color-mix(in srgb, var(--ie-white) 88%, transparent);
+  --script-dialogue-rule: color-mix(in srgb, var(--ie-white) 38%, transparent);
+  --script-parenthetical: color-mix(in srgb, var(--ie-green) 75%, var(--ie-white) 25%);
+  --script-transition: color-mix(in srgb, var(--ie-orange) 85%, var(--ie-white) 15%);
+  --script-action-rule: color-mix(in srgb, var(--ie-green) 22%, transparent);
+}

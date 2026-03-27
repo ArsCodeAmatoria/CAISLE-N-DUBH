@@ -3,11 +3,20 @@ export type RouteKey = "about" | "script" | "characters" | string;
 export interface AboutContent {
   title: string;
   subtitle: string;
+  /** Short line under the title in the hero (tone / genre tags). */
+  heroTagline: string;
+  /** e.g. "Written by Name" */
+  writtenBy: string;
   logline: string;
   pitch: string;
   theme: string;
   toneGenre: string;
   storyEngine: string;
+  /** What this website is for (reader, structure, navigation). */
+  readerAbout: string;
+  /** Hero image path under `public` (protagonist portrait on About) */
+  heroImageSrc: string;
+  heroImageAlt: string;
 }
 
 export interface ActDef {
@@ -91,9 +100,14 @@ export interface CharacterSummary {
   slug: string;
   name: string;
   role: string;
+  /** Bible handle, e.g. "The Avoider" */
+  bibleTagline: string;
   coreFlaw: string;
   arcDirection: string;
   toneDescriptor: string;
+  /** Path under `public`, e.g. `/characters/host.png` */
+  portraitSrc: string;
+  portraitAlt: string;
 }
 
 export interface CharacterDetail extends CharacterSummary {
@@ -106,6 +120,17 @@ export interface CharacterDetail extends CharacterSummary {
   keyScenes: string[];
   dialogueTone: string;
   visualPresence: string;
+  finalResolution?: string;
+  coreBibleFunction?: string;
+  behaviorRules?: string[];
+  keyLine?: string;
+  systemTruth?: { responseToTruth: string; outcome: string };
+}
+
+export interface CharacterTruthMatrixRow {
+  character: string;
+  responseToTruth: string;
+  outcome: string;
 }
 
 export interface GuidanceItem {
@@ -140,5 +165,10 @@ export interface SiteData {
   pageAccomplishments: PageRangeNote[];
   scriptFlow: ScriptFlowEntry[];
   characters: CharacterDetail[];
+  characterTruthMatrix: {
+    title: string;
+    caption: string;
+    rows: CharacterTruthMatrixRow[];
+  };
   guidancePanels: GuidancePanel[];
 }
