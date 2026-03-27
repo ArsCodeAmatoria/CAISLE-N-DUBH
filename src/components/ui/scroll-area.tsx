@@ -22,8 +22,8 @@ function ScrollArea({
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
+      <ScrollBar className="hidden" />
+      <ScrollAreaPrimitive.Corner className="hidden" />
     </ScrollAreaPrimitive.Root>
   )
 }

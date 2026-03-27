@@ -218,7 +218,7 @@ export const charactersBible: CharacterDetail[] = [
     coreFlaw: "Belief that control equals safety.",
     arcDirection: "Authority → frustration → helplessness.",
     toneDescriptor:
-      "Forties. Assertive, structured, commanding. Quickly takes charge—organizing plans, imposing logic. Believes decisiveness and authority can solve anything; confidence steadies others until nothing responds to control.",
+      "Late fifties. Assertive, structured, commanding. Quickly takes charge—organizing plans, imposing logic. Believes decisiveness and authority can solve anything; confidence steadies others until nothing responds to control.",
     overview:
       "Sean offers order in chaos until the castle refuses his frame.",
     narrativeFunction: "Represents the illusion of control.",
@@ -335,7 +335,7 @@ export const charactersBible: CharacterDetail[] = [
     coreFlaw: "Emotion without control.",
     arcDirection: "Sensitivity → overwhelm → collapse.",
     toneDescriptor:
-      "Late twenties. Sensitive, reactive, emotionally transparent. Feels everything intensely—fear, confusion, empathy. Mirrors the group’s tone and amplifies tension instead of steadying it. Wants connection without grounding.",
+      "Early fifties. Sensitive, reactive, emotionally transparent. Feels everything intensely—fear, confusion, empathy. Mirrors the group’s tone and amplifies tension instead of steadying it. Wants connection without grounding.",
     overview:
       "Erin cannot metabolize feeling at volume; the room moves through her.",
     narrativeFunction: "Represents uncontrolled emotional response.",
