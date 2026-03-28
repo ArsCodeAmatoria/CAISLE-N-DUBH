@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "script:stats": "node scripts/script-stats.mjs",
+    "script:outline": "node scripts/script-outline.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

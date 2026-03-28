@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { CharacterSummary } from "@/lib/types/site";
+import { CharacterPortraitMedia } from "@/components/characters/character-portrait-media";
 import { CharacterBibleIcon } from "@/lib/character-icons";
 import { cn } from "@/lib/utils";
 
@@ -14,10 +14,8 @@ export function CharacterCard({ c }: { c: CharacterSummary }) {
       )}
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden border-b border-border bg-secondary/30">
-        <Image
-          src={c.portraitSrc}
-          alt={c.portraitAlt}
-          fill
+        <CharacterPortraitMedia
+          character={c}
           sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
           className="object-cover object-top opacity-[0.92] transition-[opacity,transform] duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
         />

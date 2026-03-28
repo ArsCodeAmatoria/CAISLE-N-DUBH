@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import type { CharacterDetail as CharacterDetailType } from "@/lib/types/site";
+import { CharacterPortraitMedia } from "@/components/characters/character-portrait-media";
 import { PronunciationHint } from "@/components/ui/pronunciation";
 import { cn } from "@/lib/utils";
 
@@ -82,10 +82,8 @@ export function CharacterDetailView({ c }: { c: CharacterDetailType }) {
           </div>
         </header>
         <div className="relative min-h-[220px] border-t border-border lg:min-h-0 lg:border-l lg:border-t-0">
-          <Image
-            src={c.portraitSrc}
-            alt={c.portraitAlt}
-            fill
+          <CharacterPortraitMedia
+            character={c}
             priority
             sizes="(max-width: 1024px) 100vw, 42vw"
             className="object-cover object-[center_20%]"

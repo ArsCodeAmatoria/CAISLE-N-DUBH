@@ -25,6 +25,37 @@ function ThemeBlock({
   );
 }
 
+function ScriptCoverCredit({ writtenBy }: { writtenBy: string }) {
+  const match = writtenBy.match(/^Written by\s+(.+)$/i);
+  const authorName = match?.[1]?.trim() ?? writtenBy.trim();
+  const hasLabel = Boolean(match);
+
+  return (
+    <div
+      role="group"
+      aria-label={writtenBy}
+      className="mt-9 max-w-md pl-1"
+    >
+      {hasLabel ? (
+        <p className="font-[family-name:var(--font-display)] text-[11px] font-normal tracking-[0.08em] text-muted-foreground/65">
+          Written by
+        </p>
+      ) : null}
+      <p
+        className={cn(
+          "font-[family-name:var(--font-display)] text-[clamp(1rem,2.1vw,1.2rem)] font-normal leading-snug tracking-[0.04em] text-foreground/78",
+          hasLabel ? "mt-2.5" : "mt-0",
+        )}
+      >
+        {authorName}
+      </p>
+      <p className="mt-2 font-[family-name:var(--font-display)] text-[11px] font-normal tracking-[0.08em] text-muted-foreground/55">
+        Screenplay
+      </p>
+    </div>
+  );
+}
+
 function AtlasLink({
   href,
   label,
@@ -89,9 +120,7 @@ export function AboutPageContent() {
           <p className="mt-8 max-w-xl text-[12px] uppercase tracking-[0.18em] text-muted-foreground lg:text-[13px] lg:tracking-[0.2em]">
             {a.heroTagline}
           </p>
-          <p className="mt-6 font-[family-name:var(--font-geist-mono)] text-[11px] tracking-[0.12em] text-foreground/85">
-            {a.writtenBy}
-          </p>
+          <ScriptCoverCredit writtenBy={a.writtenBy} />
         </header>
         <div className="relative min-h-[220px] border-t border-border lg:min-h-0 lg:border-l lg:border-t-0">
           <Image

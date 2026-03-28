@@ -15,8 +15,15 @@ import { cn } from "@/lib/utils";
 import { Link2, ListTree, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IRISH_TRICOLOUR } from "@/lib/irish-tricolour";
+import { scriptCueToCharacterId } from "@/lib/script/script-character-cue";
+import { ScriptCharacterCue } from "@/components/script/script-character-cue";
+import type { CharacterDetail } from "@/lib/types/site";
 
 const actMap = new Map(siteData.acts.map((a) => [a.id, a]));
+
+const characterById = new Map<string, CharacterDetail>(
+  siteData.characters.map((c) => [c.id, c]),
+);
 
 const writerName = siteData.about.writtenBy.replace(/^Written by\s+/i, "").trim();
 const scriptHeroWriterCredit = `Scríbhinn ag ${writerName} · Screenplay by ${writerName}`;
@@ -315,6 +322,13 @@ function SceneBlock({
                         : variant === "scene-heading"
                           ? "pt-2"
                           : "pt-1";
+              const characterRow =
+                variant === "character"
+                  ? (() => {
+                      const cid = scriptCueToCharacterId(ln.text);
+                      return cid ? (characterById.get(cid) ?? null) : null;
+                    })()
+                  : null;
               return (
                 <div
                   key={i}
@@ -335,7 +349,17 @@ function SceneBlock({
                     className={cn("min-w-0 rounded-r-sm", wrap)}
                     data-script-variant={variant}
                   >
-                    <p className={cn(text)}>{ln.text}</p>
+                    <p className={cn(text)}>
+                      {variant === "character" ? (
+                        <ScriptCharacterCue
+                          cueText={ln.text}
+                          instanceKey={`${scene.id}-${i}`}
+                          character={characterRow}
+                        />
+                      ) : (
+                        ln.text
+                      )}
+                    </p>
                   </div>
                 </div>
               );
@@ -543,37 +567,57 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
     });
   }, []);
 
-  let runningLine = 1;
-  let lastBeatLabel: string | null = null;
-  const elements = flatNodes.map((node, idx) => {
-    if (node.kind === "beat") {
-      lastBeatLabel = node.beat.saveTheCat;
-      return <BeatBlock key={`b-${node.beat.id}-${idx}`} beat={node.beat} />;
-    }
-    if (node.kind === "marker") {
-      return <MarkerBlock key={`m-${node.marker.id}-${idx}`} marker={node.marker} />;
-    }
-    if (node.kind === "accomplishment") {
-      return (
-        <AccomplishmentBlock key={`n-${node.note.id}-${idx}`} note={node.note} />
-      );
-    }
-    const start = runningLine;
-    runningLine += node.scene.lines.length;
-    return (
-      <SceneBlock
-        key={`s-${node.scene.id}-${idx}`}
-        scene={node.scene}
-        lineStart={start}
-        structureOnly={structureOnly}
-        beatLabel={lastBeatLabel}
-      />
-    );
-  });
+  const elements = flatNodes.reduce<{
+    list: React.ReactNode[];
+    runningLine: number;
+    lastBeatLabel: string | null;
+  }>(
+    (acc, node, idx) => {
+      if (node.kind === "beat") {
+        return {
+          list: [...acc.list, <BeatBlock key={`b-${node.beat.id}-${idx}`} beat={node.beat} />],
+          runningLine: acc.runningLine,
+          lastBeatLabel: node.beat.saveTheCat,
+        };
+      }
+      if (node.kind === "marker") {
+        return {
+          ...acc,
+          list: [...acc.list, <MarkerBlock key={`m-${node.marker.id}-${idx}`} marker={node.marker} />],
+        };
+      }
+      if (node.kind === "accomplishment") {
+        return {
+          ...acc,
+          list: [
+            ...acc.list,
+            <AccomplishmentBlock key={`n-${node.note.id}-${idx}`} note={node.note} />,
+          ],
+        };
+      }
+      const start = acc.runningLine;
+      return {
+        list: [
+          ...acc.list,
+          <SceneBlock
+            key={`s-${node.scene.id}-${idx}`}
+            scene={node.scene}
+            lineStart={start}
+            structureOnly={structureOnly}
+            beatLabel={acc.lastBeatLabel}
+          />,
+        ],
+        runningLine: acc.runningLine + node.scene.lines.length,
+        lastBeatLabel: acc.lastBeatLabel,
+      };
+    },
+    { list: [], runningLine: 1, lastBeatLabel: null },
+  ).list;
 
   return (
     <div
       ref={scrollRef}
+      data-script-scroll-root
       className="min-h-0 flex-1 overflow-y-auto scroll-smooth outline-none focus-visible:ring-1 focus-visible:ring-ring"
       tabIndex={0}
     >

@@ -71,6 +71,16 @@ export type ScriptLineKind =
  */
 export type SceneStoryWeight = "greater" | "lesser";
 
+/** Beat-sheet line for development / coverage (optional until you fill). */
+export interface SceneOutline {
+  /** What the scene pursues on screen (want / tactic / on-page intention). */
+  goal: string;
+  /** What blocks it—people, rules, fear, environment. */
+  obstacle: string;
+  /** Value swing by scene end (McKee turn / STC shift)—what’s different after. */
+  turn: string;
+}
+
 export interface ScriptLine {
   kind: ScriptLineKind;
   text: string;
@@ -91,6 +101,8 @@ export interface ScriptScene {
   page: number;
   structNote?: string;
   themeNote?: string;
+  /** Goal / obstacle / turn — fill for coverage; run `npm run script:outline`. */
+  outline?: SceneOutline;
   characterIds: string[];
   lines: ScriptLine[];
 }
@@ -141,6 +153,8 @@ export interface CharacterSummary {
   /** Path under `public`, e.g. `/characters/host.png` */
   portraitSrc: string;
   portraitAlt: string;
+  /** Optional looped portrait video (e.g. `/characters/file.mp4`). Still set portraitSrc for poster / fallback. */
+  portraitVideoSrc?: string;
 }
 
 export interface CharacterDetail extends CharacterSummary {
