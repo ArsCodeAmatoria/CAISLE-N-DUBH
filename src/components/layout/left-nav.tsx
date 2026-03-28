@@ -249,8 +249,29 @@ export function LeftNav() {
             Reader position
           </p>
           <p className="mt-1 font-[family-name:var(--font-geist-mono)] text-[11px] text-foreground/90">
-            p. ~{scroll.pageApprox}
+            p. {scroll.pageApprox}
+            <span className="text-muted-foreground"> / {scroll.totalScriptPages}</span>
           </p>
+          {scroll.beatPageDelta !== null && (
+            <p
+              className={cn(
+                "mt-1 text-[10px] leading-snug",
+                scroll.beatPageDelta === 0
+                  ? "text-muted-foreground"
+                  : scroll.beatPageDelta > 0
+                    ? "text-amber-700 dark:text-amber-500/85"
+                    : "text-sky-700 dark:text-sky-400/85",
+              )}
+            >
+              Beat {scroll.beatPageDelta > 0 ? `+${scroll.beatPageDelta}` : scroll.beatPageDelta < 0 ? `−${Math.abs(scroll.beatPageDelta)}` : "±0"}
+              {scroll.beatPageActual !== null && scroll.beatPageTarget !== null && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  ({scroll.beatPageActual}/{scroll.beatPageTarget} p)
+                </span>
+              )}
+            </p>
+          )}
           {scroll.actLabel && (
             <p className="mt-0.5 text-foreground/80">{scroll.actLabel}</p>
           )}

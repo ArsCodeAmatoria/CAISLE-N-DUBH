@@ -3,6 +3,13 @@
 import * as React from "react";
 import { siteData } from "@/data/site";
 import { flatScriptNodes } from "@/lib/script/flat-script-nodes";
+import {
+  SCRIPT_LINES_PER_PAGE,
+  computeBeatPageStats,
+  computeBeatStartLineMap,
+  lineNumberToPage,
+  type BeatPageStats,
+} from "@/lib/script/script-pagination";
 import type { ScriptScrollState } from "@/components/script/script-scroll-context";
 import type {
   BeatDef,
@@ -15,15 +22,7 @@ import { cn } from "@/lib/utils";
 import { Link2, ListTree, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IRISH_TRICOLOUR } from "@/lib/irish-tricolour";
-import { scriptCueToCharacterId } from "@/lib/script/script-character-cue";
-import { ScriptCharacterCue } from "@/components/script/script-character-cue";
-import type { CharacterDetail } from "@/lib/types/site";
-
 const actMap = new Map(siteData.acts.map((a) => [a.id, a]));
-
-const characterById = new Map<string, CharacterDetail>(
-  siteData.characters.map((c) => [c.id, c]),
-);
 
 const writerName = siteData.about.writtenBy.replace(/^Written by\s+/i, "").trim();
 const scriptHeroWriterCredit = `Scríbhinn ag ${writerName} · Screenplay by ${writerName}`;
@@ -36,6 +35,10 @@ const IE = {
 
 export const flatNodes = flatScriptNodes;
 
+const beatsByIdForPagination = new Map(siteData.beats.map((b) => [b.id, b]));
+const beatPaginationPack = computeBeatPageStats(flatScriptNodes, beatsByIdForPagination);
+const beatStartLineById = computeBeatStartLineMap(flatScriptNodes);
+
 const initialMeta: ScriptScrollState = {
   pageApprox: 1,
   beatLabel: null,
@@ -43,7 +46,16 @@ const initialMeta: ScriptScrollState = {
   sceneSlug: null,
   activeAnchor: null,
   sceneWeight: null,
+  beatPageActual: null,
+  beatPageTarget: null,
+  beatPageDelta: null,
+  totalScriptPages: Math.max(1, beatPaginationPack.totalPagesRounded),
 };
+
+function formatBeatDelta(delta: number): string {
+  if (delta === 0) return "±0";
+  return delta > 0 ? `+${delta}` : `−${Math.abs(delta)}`;
+}
 
 const sceneWeightLabel: Record<SceneStoryWeight, string> = {
   greater: "Greater on the board",
@@ -91,20 +103,54 @@ function MarkerBlock({ marker }: { marker: StructuralMarker }) {
   );
 }
 
-function BeatBlock({ beat }: { beat: BeatDef }) {
+function BeatBlock({
+  beat,
+  stats,
+}: {
+  beat: BeatDef;
+  stats: BeatPageStats | undefined;
+}) {
+  const startPage = lineNumberToPage(beatStartLineById.get(beat.id) ?? 1);
   return (
     <section
       id={beat.anchor}
       data-script-section
       data-nav-kind="beat"
       data-beat-label={beat.saveTheCat}
+      data-page={String(startPage)}
+      data-beat-id={beat.id}
+      data-beat-page-actual={stats !== undefined ? String(stats.pagesRounded) : ""}
+      data-beat-page-target={String(beat.targetPages)}
+      data-beat-page-delta={stats !== undefined ? String(stats.delta) : ""}
       className="scroll-mt-28 border-t border-border pt-12"
     >
       <div className="mx-auto max-w-2xl px-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/70 pb-3">
-          <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-[0.12em] text-foreground">
-            {beat.saveTheCat}
-          </h2>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-[0.12em] text-foreground">
+              {beat.saveTheCat}
+            </h2>
+            {stats !== undefined && (
+              <p
+                className="mt-2 font-[family-name:var(--font-geist-mono)] text-[10px] leading-relaxed text-muted-foreground"
+                title={`${SCRIPT_LINES_PER_PAGE} script lines ≈ one industry page; beat actual is rounded from line count.`}
+              >
+                <span className="text-foreground/85">{stats.pagesRounded} p</span> actual ·{" "}
+                <span className="text-foreground/85">{stats.targetPages} p</span> target ·{" "}
+                <span
+                  className={cn(
+                    stats.delta === 0
+                      ? "text-muted-foreground"
+                      : stats.delta > 0
+                        ? "text-amber-700 dark:text-amber-500/90"
+                        : "text-sky-700 dark:text-sky-400/90",
+                  )}
+                >
+                  {formatBeatDelta(stats.delta)}
+                </span>
+              </p>
+            )}
+          </div>
           <CopyAnchor id={beat.anchor} />
         </div>
       </div>
@@ -226,22 +272,31 @@ function SceneBlock({
   lineStart,
   structureOnly,
   beatLabel,
+  beatStats,
 }: {
   scene: ScriptScene;
   lineStart: number;
   structureOnly: boolean;
   beatLabel: string | null;
+  beatStats: BeatPageStats | undefined;
 }) {
   const act = actMap.get(scene.actId);
+  const pageStart = lineNumberToPage(lineStart);
+  const beatTarget =
+    beatStats?.targetPages ?? beatsByIdForPagination.get(scene.beatId)?.targetPages ?? 0;
   let lineNum = lineStart;
   return (
     <section
       id={scene.anchor}
       data-script-section
       data-nav-kind="scene"
-      data-page={String(scene.page)}
+      data-page={String(pageStart)}
       data-act={act?.shortLabel ?? ""}
       data-beat-label={beatLabel ?? ""}
+      data-beat-id={scene.beatId}
+      data-beat-page-actual={beatStats !== undefined ? String(beatStats.pagesRounded) : ""}
+      data-beat-page-target={String(beatTarget)}
+      data-beat-page-delta={beatStats !== undefined ? String(beatStats.delta) : ""}
       data-scene-slug={scene.slug}
       data-scene-weight={scene.sceneWeight}
       className="scroll-mt-28 pb-16 pt-8"
@@ -250,8 +305,11 @@ function SceneBlock({
         <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border/60 pb-4">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground">
-                Scene · p. {scene.page}
+              <p
+                className="font-[family-name:var(--font-geist-mono)] text-[10px] text-muted-foreground"
+                title={`Line ${lineStart} → page by ${SCRIPT_LINES_PER_PAGE} lines/page. Draft “p.” in notes may differ.`}
+              >
+                Scene · p. {pageStart}
                 {act ? ` · ${act.shortLabel}` : ""}
               </p>
               <span
@@ -290,7 +348,8 @@ function SceneBlock({
         )}
         {structureOnly ? (
           <p className="text-[12px] text-muted-foreground">
-            {scene.lines.length} lines · {scene.characterIds.length} presences ·{" "}
+            {scene.lines.length} lines (~{Math.max(0.1, scene.lines.length / SCRIPT_LINES_PER_PAGE).toFixed(1)} p) ·{" "}
+            {scene.characterIds.length} presences ·{" "}
             <span className="text-foreground/80">
               {scene.sceneWeight === "greater" ? "Greater" : "Lesser"} on the board
             </span>
@@ -322,13 +381,6 @@ function SceneBlock({
                         : variant === "scene-heading"
                           ? "pt-2"
                           : "pt-1";
-              const characterRow =
-                variant === "character"
-                  ? (() => {
-                      const cid = scriptCueToCharacterId(ln.text);
-                      return cid ? (characterById.get(cid) ?? null) : null;
-                    })()
-                  : null;
               return (
                 <div
                   key={i}
@@ -349,17 +401,7 @@ function SceneBlock({
                     className={cn("min-w-0 rounded-r-sm", wrap)}
                     data-script-variant={variant}
                   >
-                    <p className={cn(text)}>
-                      {variant === "character" ? (
-                        <ScriptCharacterCue
-                          cueText={ln.text}
-                          instanceKey={`${scene.id}-${i}`}
-                          character={characterRow}
-                        />
-                      ) : (
-                        ln.text
-                      )}
-                    </p>
+                    <p className={cn(text)}>{ln.text}</p>
                   </div>
                 </div>
               );
@@ -396,7 +438,39 @@ function StickyMetaBar({ meta }: { meta: ScriptScrollState }) {
   return (
     <div className="sticky top-0 z-20 border-b border-border/80 bg-background/90 py-3 backdrop-blur-md transition-[background] duration-300">
       <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-x-4 gap-y-1 px-6 font-[family-name:var(--font-geist-mono)] text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-        <span className="text-foreground/90">p. ~{meta.pageApprox}</span>
+        <span
+          className="text-foreground/90"
+          title={`${SCRIPT_LINES_PER_PAGE} lines per page · draft notes may use different “p.”`}
+        >
+          p. {meta.pageApprox}
+          <span className="text-muted-foreground/90"> / {meta.totalScriptPages}</span>
+        </span>
+        {meta.beatPageDelta !== null && (
+          <>
+            <span aria-hidden className="text-border">
+              |
+            </span>
+            <span
+              className={cn(
+                "normal-case tracking-normal",
+                meta.beatPageDelta === 0
+                  ? "text-[11px] text-muted-foreground"
+                  : meta.beatPageDelta > 0
+                    ? "text-[11px] text-amber-700 dark:text-amber-500/90"
+                    : "text-[11px] text-sky-700 dark:text-sky-400/90",
+              )}
+              title="Beat actual pages vs target (this section). + over weight, − under."
+            >
+              Beat {formatBeatDelta(meta.beatPageDelta)}
+              {meta.beatPageActual !== null && meta.beatPageTarget !== null && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  ({meta.beatPageActual}/{meta.beatPageTarget} p)
+                </span>
+              )}
+            </span>
+          </>
+        )}
         {meta.actLabel && (
           <>
             <span aria-hidden className="text-border">
@@ -471,6 +545,27 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
         }
       }
 
+      let beatPageActual = prev.beatPageActual;
+      let beatPageTarget = prev.beatPageTarget;
+      let beatPageDelta = prev.beatPageDelta;
+      if (kind === "scene" || kind === "beat") {
+        const a = el.getAttribute("data-beat-page-actual");
+        const t = el.getAttribute("data-beat-page-target");
+        const d = el.getAttribute("data-beat-page-delta");
+        if (a !== null && a !== "") {
+          const n = parseInt(a, 10);
+          beatPageActual = Number.isFinite(n) ? n : null;
+        } else beatPageActual = null;
+        if (t !== null && t !== "") {
+          const n = parseInt(t, 10);
+          beatPageTarget = Number.isFinite(n) ? n : null;
+        } else beatPageTarget = null;
+        if (d !== null && d !== "") {
+          const n = parseInt(d, 10);
+          beatPageDelta = Number.isFinite(n) ? n : null;
+        } else beatPageDelta = null;
+      }
+
       let actLabel = actAttr || prev.actLabel;
       let beatLabel = beatAttr || prev.beatLabel;
       if (kind === "beat") {
@@ -506,6 +601,10 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
         sceneSlug: kind === "scene" ? sceneSlug : null,
         activeAnchor: anchor,
         sceneWeight,
+        beatPageActual,
+        beatPageTarget,
+        beatPageDelta,
+        totalScriptPages: beatPaginationPack.totalPagesRounded,
       };
 
       metaRef.current = merged;
@@ -575,7 +674,14 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
     (acc, node, idx) => {
       if (node.kind === "beat") {
         return {
-          list: [...acc.list, <BeatBlock key={`b-${node.beat.id}-${idx}`} beat={node.beat} />],
+          list: [
+            ...acc.list,
+            <BeatBlock
+              key={`b-${node.beat.id}-${idx}`}
+              beat={node.beat}
+              stats={beatPaginationPack.byBeatId.get(node.beat.id)}
+            />,
+          ],
           runningLine: acc.runningLine,
           lastBeatLabel: node.beat.saveTheCat,
         };
@@ -605,6 +711,7 @@ export function ScriptReader({ onMeta }: ScriptReaderProps) {
             lineStart={start}
             structureOnly={structureOnly}
             beatLabel={acc.lastBeatLabel}
+            beatStats={beatPaginationPack.byBeatId.get(node.scene.beatId)}
           />,
         ],
         runningLine: acc.runningLine + node.scene.lines.length,

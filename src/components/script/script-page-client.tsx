@@ -17,6 +17,10 @@ const emptyScroll: ScriptScrollState = {
   sceneSlug: null,
   activeAnchor: null,
   sceneWeight: null,
+  beatPageActual: null,
+  beatPageTarget: null,
+  beatPageDelta: null,
+  totalScriptPages: 1,
 };
 
 export function ScriptPageClient() {

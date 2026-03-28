@@ -46,6 +46,8 @@ export interface BeatDef {
   label: string;
   anchor: string;
   order: number;
+  /** Save the Cat–style page budget for a ~110-page feature (editorial target vs line-derived actuals in the reader). */
+  targetPages: number;
 }
 
 export interface SequenceDef {
